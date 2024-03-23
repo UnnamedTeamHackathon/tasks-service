@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { $Enums } from '@prisma/client';
-import { DecompileUpdateRequest } from 'src/decompile/contracts/decompile.update.request';
 
 export class TaskUpdateRequest {
   @ApiProperty({
@@ -25,5 +24,11 @@ export class TaskUpdateRequest {
   points?: number;
 
   @ApiProperty()
-  task?: DecompileUpdateRequest;
+  file_url?: string;
+
+  @ApiProperty()
+  answer?: string;
+
+  @ApiProperty()
+  image_url?: string;
 }

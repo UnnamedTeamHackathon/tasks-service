@@ -66,14 +66,9 @@ export class TaskController {
   })
   @Get(':id')
   async task(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.task(
-      {
-        id,
-      },
-      {
-        task: true,
-      },
-    );
+    return this.service.task({
+      id,
+    });
   }
 
   @ApiOkResponse({
@@ -85,51 +80,4 @@ export class TaskController {
   async create(@Body() request: TaskCreateRequest) {
     return this.service.create(request);
   }
-
-  // @ApiOkResponse({
-  //   type: TextTaskDto,
-  // })
-  // @Post(':id/textbox')
-  // async createTextbox(
-  //   @Param('id', ParseUUIDPipe) id: string,
-  //   @Body() textbox: TextboxTaskCreateRequest,
-  // ) {
-  //   const { answer } = textbox;
-
-  //   return this.service.createTextbox({
-  //     answer,
-  //     task: {
-  //       connect: {
-  //         id,
-  //       },
-  //     },
-  //   });
-  // }
-
-  // @ApiOkResponse({
-  //   type: TextTaskDto,
-  // })
-  // @ApiBody({
-  //   type: ChoiceTaskCreateRequest,
-  // })
-  // @Post(':id/choices')
-  // async createChoices(
-  //   @Param('id', ParseUUIDPipe) id: string,
-  //   @Body() request: ChoiceTaskCreateRequest,
-  // ) {
-  //   const { choices } = request;
-
-  //   return this.service.createChoice({
-  //     task: {
-  //       connect: {
-  //         id,
-  //       },
-  //     },
-  //     choices: {
-  //       createMany: {
-  //         data: [...choices],
-  //       },
-  //     },
-  //   });
-  // }
 }

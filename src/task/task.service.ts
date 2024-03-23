@@ -1,84 +1,66 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TaskCreateRequest } from './contracts/task.create.request';
 import { TaskDto } from './dto/task.dto';
 import { TaskUpdateRequest } from './contracts/task.update.request';
+import { HttpService } from '@nestjs/axios';
+import { TaskModel } from './models/task.model';
 
 @Injectable()
 export class TaskService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly http: HttpService,
+  ) {}
 
-  async patch(params: { id: string, data: TaskUpdateRequest }) {
+  async patch(params: { id: string; data: TaskUpdateRequest }) {
     const { id, data } = params;
 
     return this.prisma.task.update({
       where: {
         id,
       },
-      data: {
-        title: data.title,
-        description: data.description,
-        difficulty: data.difficulty,
-        type: data.type,
-        points: data.points,
-        task: {
-          update: {
-            answer: data.task.answer,
-            file_url: data.task.file_url,
-          },
-        },
-      },
-      include: {
-        task: true,
-      },
+      data,
     });
   }
 
   async delete(params: { id: string }) {
     const { id } = params;
 
+    const c = await this.task({ id });
+
+    if (c == null) {
+      throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    }
+
     return this.prisma.task.delete({
       where: {
         id,
       },
-      include: {
-        task: true,
-      },
     });
   }
 
-  async task(
-    where: Prisma.TaskWhereUniqueInput,
-    include?: Prisma.TaskInclude,
-  ): Promise<TaskDto> {
-    return this.prisma.task.findUnique({
+  async task(where: Prisma.TaskWhereUniqueInput): Promise<TaskDto> {
+    const db = await this.prisma.task.findUnique({
       where,
-      include,
     });
+
+    const result: TaskDto = {
+      ...db,
+    };
+
+    return result;
   }
 
-  async tasks(): Promise<TaskDto[]> {
+  async tasks(): Promise<TaskModel[]> {
     return this.prisma.task.findMany();
   }
 
-  async create(dto: TaskCreateRequest): Promise<TaskDto> {
+  async create(dto: TaskCreateRequest): Promise<TaskModel> {
     return this.prisma.task.create({
       data: {
-        title: dto.title,
-        type: dto.type,
-        description: dto.description,
-        difficulty: dto.difficulty,
-        points: dto.points,
-        task: {
-          create: {
-            file_url: dto.task.file_url,
-            answer: dto.task.answer,
-          },
-        },
-      },
-      include: {
-        task: true,
+        ...dto,
       },
     });
   }

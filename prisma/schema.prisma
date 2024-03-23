@@ -39,21 +39,13 @@ model Task {
   description String
   difficulty TaskDifficulty @default(normal)
   points Int @default(100)
+  image_url String?
+  
+  file_url String?
+  answer String?
 
   type TaskType @default(reverse)
-  task DecompileTask?
-
   users_completed User[]
 
   @@index([id])
-}
-
-model DecompileTask {
-  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-
-  file_url String
-  answer String
-
-  task Task @relation(references: [id], fields: [task_id], onDelete: Cascade, onUpdate: Cascade)
-  task_id String @db.Uuid @unique
 }

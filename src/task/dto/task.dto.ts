@@ -28,5 +28,8 @@ export class TaskDto {
   points: number;
 
   @ApiProperty()
-  task?: DecompileTaskModel;
+  file_url: string;
+
+  //@ApiProperty()
+  //answer: string;
 }

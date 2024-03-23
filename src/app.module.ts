@@ -7,6 +7,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from 'src/users/users.module';
     }),
     AuthModule,
     UsersModule,
+    HttpModule,
   ],
   controllers: [],
   providers: [],

@@ -20,11 +20,11 @@ export class UsersService {
              join "User" u on tu."B" = u.id
     group by u.id;`;
 
-    return query.map(p => {
+    return query.map((p) => {
       return {
         id: p.id,
-        points: Number(p.points)
-      }
+        points: Number(p.points),
+      };
     });
   }
 

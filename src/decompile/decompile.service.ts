@@ -11,18 +11,13 @@ export class DecompileService {
     const candidate = await this.prisma.task.findUnique({
       where: {
         id,
-      },
-      include: {
-        task: true,
-      },
+      }
     });
 
     if (candidate == null) {
       throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
     }
 
-    const decompileTask = candidate.task;
-
-    return decompileTask.answer === answer;
+    return candidate.answer === answer;
   }
 }

@@ -1,12 +1,38 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { $Enums, Task } from '@prisma/client';
-import { DecompileTaskModel } from 'src/decompile/models/decompile.task.model';
 
 export class TaskModel implements Task {
-  type: $Enums.TaskType;
-  difficulty: $Enums.TaskDifficulty;
+  @ApiProperty()
+  file_url: string;
+
+  @ApiProperty()
+  answer: string;
+
+  @ApiProperty()
   id: string;
+
+  @ApiProperty({
+    enum: ['cryptography', 'reverse', 'web', 'forensic', 'steganoraphy'],
+    type: String,
+  })
+  type: $Enums.TaskType;
+
+  @ApiProperty({
+    enum: ['easy', 'normal', 'hard', 'very_hard'],
+    type: String,
+  })
+  difficulty: $Enums.TaskDifficulty;
+
+  @ApiProperty()
   title: string;
+
+  @ApiProperty()
   description: string;
+
+  @ApiProperty()
   points: number;
-  task: DecompileTaskModel;
+
+  @ApiProperty()
+  image_url: string;
 }
+
