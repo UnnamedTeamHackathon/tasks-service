@@ -11,7 +11,7 @@ export class DecompileService {
     const candidate = await this.prisma.task.findUnique({
       where: {
         id,
-      }
+      },
     });
 
     if (candidate == null) {

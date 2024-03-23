@@ -35,4 +35,3 @@ export class TaskModel implements Task {
   @ApiProperty()
   image_url: string;
 }
-

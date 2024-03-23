@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class DecompileTaskModel {
-  @ApiProperty()
-  file_url: string;
-
+export class HintDto {
   @ApiProperty()
   id: string;
 
   @ApiProperty()
-  task_id: string;
+  text: string;
 
   @ApiProperty()
-  answer: string;
+  file_url: string;
+
+  @ApiProperty()
+  image_url: string;
 }

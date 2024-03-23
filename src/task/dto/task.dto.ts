@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { $Enums } from '@prisma/client';
-import { DecompileTaskModel } from 'src/decompile/models/decompile.task.model';
 
 export class TaskDto {
   @ApiProperty()

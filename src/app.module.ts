@@ -8,6 +8,7 @@ import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { HttpModule } from '@nestjs/axios';
+import { HintModule } from './hint/hint.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { HttpModule } from '@nestjs/axios';
     AuthModule,
     UsersModule,
     HttpModule,
+    HintModule,
   ],
   controllers: [],
   providers: [],

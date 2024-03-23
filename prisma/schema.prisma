@@ -1,13 +1,13 @@
 generator client {
-  provider          = "prisma-client-js"
-  previewFeatures   = ["postgresqlExtensions"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider          = "postgresql"
-  relationMode      = "foreignKeys"
-  url               = env("DATABASE_URL")
-  extensions        = [uuidOssp(map: "uuid-ossp")]
+  provider     = "postgresql"
+  relationMode = "foreignKeys"
+  url          = env("DATABASE_URL")
+  extensions   = [uuidOssp(map: "uuid-ossp")]
 }
 
 enum TaskType {
@@ -26,26 +26,37 @@ enum TaskDifficulty {
 }
 
 model User {
-  id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+  id String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
 
   completed_tasks Task[]
 }
 
-
 model Task {
-  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  title String
+  title       String
   description String
-  difficulty TaskDifficulty @default(normal)
-  points Int @default(100)
-  image_url String?
-  
-  file_url String?
-  answer String?
+  difficulty  TaskDifficulty @default(normal)
+  points      Int            @default(100)
+  image_url   String?
 
-  type TaskType @default(reverse)
+  file_url String?
+  answer   String?
+
+  type            TaskType @default(reverse)
   users_completed User[]
+  hint            Hint?
 
   @@index([id])
+}
+
+model Hint {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  text      String
+  file_url  String?
+  image_url String?
+
+  task    Task   @relation(references: [id], fields: [task_id], onDelete: Cascade, onUpdate: Cascade)
+  task_id String @unique @db.Uuid
 }
