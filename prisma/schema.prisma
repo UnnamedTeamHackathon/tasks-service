@@ -1,0 +1,59 @@
+generator client {
+  provider          = "prisma-client-js"
+  previewFeatures   = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider          = "postgresql"
+  relationMode      = "foreignKeys"
+  url               = env("DATABASE_URL")
+  extensions        = [uuidOssp(map: "uuid-ossp")]
+}
+
+enum TaskType {
+  reverse
+  cryptography
+  steganoraphy
+  web
+  forensic
+}
+
+enum TaskDifficulty {
+  easy
+  normal
+  hard
+  very_hard
+}
+
+model User {
+  id String @id @db.Uuid @default(dbgenerated("uuid_generate_v4()"))
+
+  completed_tasks Task[]
+}
+
+
+model Task {
+  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+
+  title String
+  description String
+  difficulty TaskDifficulty @default(normal)
+  points Int @default(100)
+
+  type TaskType @default(reverse)
+  task DecompileTask?
+
+  users_completed User[]
+
+  @@index([id])
+}
+
+model DecompileTask {
+  id String @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+
+  file_url String
+  answer String
+
+  task Task @relation(references: [id], fields: [task_id], onDelete: Cascade, onUpdate: Cascade)
+  task_id String @db.Uuid @unique
+}
