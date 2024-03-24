@@ -14,30 +14,29 @@ export class HintService {
     private readonly http: HttpService,
   ) {}
 
-  async patch(params: { id: string; data: HintUpdateRequest }) {
-    const { id, data } = params;
+  async patch(params: {
+    where: Prisma.HintWhereUniqueInput;
+    data: HintUpdateRequest;
+  }) {
+    const { where, data } = params;
 
     return this.prisma.hint.update({
-      where: {
-        id,
-      },
+      where,
       data,
     });
   }
 
-  async delete(params: { id: string }) {
-    const { id } = params;
+  async delete(params: { where: Prisma.HintWhereUniqueInput }) {
+    const { where } = params;
 
-    const c = await this.hint({ id });
+    const c = await this.hint(where);
 
     if (c == null) {
       throw new HttpException('Hint not found', HttpStatus.NOT_FOUND);
     }
 
     return this.prisma.hint.delete({
-      where: {
-        id,
-      },
+      where,
     });
   }
 

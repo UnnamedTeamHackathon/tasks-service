@@ -37,14 +37,31 @@ export class HintController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: HintUpdateRequest,
   ) {
-    return this.service.patch({ id, data });
+    return this.service.patch({ where: { id }, data });
+  }
+
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @Patch('by-task/:task_id')
+  async updateByTaskId(
+    @Param('task_id', ParseUUIDPipe) task_id: string,
+    @Body() data: HintUpdateRequest,
+  ) {
+    return this.service.patch({ where: { task_id }, data });
   }
 
   @UseGuards(AuthGuard, RoleGuard)
   @Roles(Role.Admin)
   @Delete(':id')
   async delete(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.delete({ id });
+    return this.service.delete({ where: { id } });
+  }
+
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @Delete('by-task/:task_id')
+  async deleteByTaskId(@Param('task_id', ParseUUIDPipe) task_id: string) {
+    return this.service.delete({ where: { task_id } });
   }
 
   @ApiOkResponse({
