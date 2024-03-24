@@ -74,6 +74,21 @@ export class HintController {
   @ApiOkResponse({
     type: HintDto,
   })
+  @ApiParam({
+    name: 'task_id',
+    type: String,
+    format: 'uuid',
+  })
+  @Get('by-task/:task_id')
+  async hintByTaskId(@Param('task_id', ParseUUIDPipe) task_id: string) {
+    return this.service.hint({
+      task_id,
+    });
+  }
+
+  @ApiOkResponse({
+    type: HintDto,
+  })
   @UseGuards(AuthGuard, RoleGuard)
   @Roles(Role.Admin)
   @Post()
