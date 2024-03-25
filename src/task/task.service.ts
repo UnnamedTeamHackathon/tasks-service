@@ -53,8 +53,10 @@ export class TaskService {
     return result;
   }
 
-  async tasks(): Promise<TaskModel[]> {
-    return this.prisma.task.findMany();
+  async tasks(where: Prisma.TaskWhereInput): Promise<TaskModel[]> {
+    return this.prisma.task.findMany({
+      where,
+    });
   }
 
   async create(dto: TaskCreateRequest): Promise<TaskModel> {

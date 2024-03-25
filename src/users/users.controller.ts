@@ -26,7 +26,7 @@ export class UsersController {
 
   @ApiOkResponse({
     type: UserDto,
-    isArray: true
+    isArray: true,
   })
   @Get('points')
   async allPoints() {

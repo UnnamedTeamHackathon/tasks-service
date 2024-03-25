@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
@@ -15,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { TaskDto } from './dto/task.dto';
@@ -23,6 +25,7 @@ import { RoleGuard } from 'src/auth/roles/role.guard';
 import { Role } from 'src/auth/roles/role.enum';
 import { Roles } from 'src/auth/roles/role.decorator';
 import { TaskUpdateRequest } from './contracts/task.update.request';
+import { $Enums } from '@prisma/client';
 
 @ApiBearerAuth('jwt')
 @ApiTags('Tasks')
@@ -47,13 +50,30 @@ export class TaskController {
     return this.service.delete({ id });
   }
 
+  @ApiQuery({
+    name: 'q',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'filter',
+    type: String,
+    required: false,
+  })
   @ApiOkResponse({
     type: TaskDto,
     isArray: true,
   })
   @Get()
-  async tasks() {
-    return this.service.tasks();
+  async tasks(@Query('q') query?: string, @Query('filter') filter?: string) {
+    return this.service.tasks({
+      title: {
+        contains: query,
+      },
+      difficulty: {
+        equals: $Enums.TaskDifficulty[filter],
+      },
+    });
   }
 
   @ApiOkResponse({
