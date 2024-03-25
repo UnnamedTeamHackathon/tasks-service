@@ -1,37 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DecompileService } from 'src/decompile/decompile.service';
 import { DecompileAnswerResultDto } from 'src/decompile/dto/decompile.answer.dto';
 import { PointsDto } from './dto/points.dto';
-import { Client, Transport, ClientKafka } from '@nestjs/microservices';
-import { Partitioners } from 'kafkajs';
+import { ClientKafka } from '@nestjs/microservices';
 import { TaskCompletedMessage } from './messages/task-completed.message';
 import { PointsMessage } from './messages/points.message';
 import { TopMessage } from './messages/top.message';
 
 @Injectable()
 export class UsersService {
-  @Client({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        clientId: 'award',
-        brokers: [process.env.KAFKA_ENDPOINT],
-      },
-      producerOnlyMode: true,
-      producer: {
-        createPartitioner: Partitioners.DefaultPartitioner,
-      },
-    },
-  })
-  client: ClientKafka;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly decompile: DecompileService,
+    @Inject('AWARD_PRODUCER') private readonly client: ClientKafka,
   ) {
-    this.client.connect();
+    this.client.connect().then((value) => console.log(value));
   }
 
   async sumPoints(): Promise<PointsDto[]> {
@@ -91,7 +76,7 @@ export class UsersService {
     this.client.emit('award.top', message);
   }
 
-  private async sendEverything(params: { userId: string, valid: boolean }) {
+  private async sendEverything(params: { userId: string; valid: boolean }) {
     const { userId, valid } = params;
 
     this.sendTaskCompletedMessage({ userId, valid, timestamp: new Date() });
@@ -104,7 +89,7 @@ export class UsersService {
     });
 
     const top = await this.sumPoints();
-    const rank = top.indexOf(top.filter(dto => dto.id == userId).at(0));
+    const rank = top.indexOf(top.filter((dto) => dto.id == userId).at(0));
 
     this.sendTopMessage({
       userId,
@@ -139,6 +124,11 @@ export class UsersService {
     });
 
     if (!result) {
+      await this.sendEverything({
+        userId,
+        valid: false,
+      });
+
       return {
         decompile_id: taskId,
         answer,
@@ -162,12 +152,10 @@ export class UsersService {
       },
     });
 
-    await this.sendTaskCompletedMessage({
+    await this.sendEverything({
       userId,
       valid: true,
-      timestamp: new Date(),
     });
-
 
     return {
       decompile_id: taskId,
@@ -209,20 +197,7 @@ export class UsersService {
       });
     }
 
-    await this.sendTaskCompletedMessage({
-      userId,
-      valid: true,
-      timestamp: new Date(),
-    });
-
-    const points = await this.points({ userId });
-
-    await this.sendPointsMessage({
-      userId,
-      points: points.points,
-    });
-
-    return this.prisma.user.update({
+    const res = this.prisma.user.update({
       where: {
         id: userId,
       },
@@ -237,5 +212,12 @@ export class UsersService {
         completed_tasks: true,
       },
     });
+
+    await this.sendEverything({
+      userId,
+      valid: true,
+    });
+
+    return res;
   }
 }
