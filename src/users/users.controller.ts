@@ -74,7 +74,6 @@ export class UsersController {
     @Body() dto: DecompileAnswerRequest,
   ) {
     const userId = req.user.userId;
-    console.log(1);
     return this.user.tryCompleteTask({ userId, taskId, answer: dto.answer });
   }
 }

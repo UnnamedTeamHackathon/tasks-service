@@ -4,13 +4,35 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { DecompileService } from 'src/decompile/decompile.service';
 import { DecompileAnswerResultDto } from 'src/decompile/dto/decompile.answer.dto';
 import { PointsDto } from './dto/points.dto';
+import { Client, Transport, ClientKafka } from '@nestjs/microservices';
+import { Partitioners } from 'kafkajs';
+import { TaskCompletedMessage } from './messages/task-completed.message';
+import { PointsMessage } from './messages/points.message';
+import { TopMessage } from './messages/top.message';
 
 @Injectable()
 export class UsersService {
+  @Client({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: 'award',
+        brokers: [process.env.KAFKA_ENDPOINT],
+      },
+      producerOnlyMode: true,
+      producer: {
+        createPartitioner: Partitioners.DefaultPartitioner,
+      },
+    },
+  })
+  client: ClientKafka;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly decompile: DecompileService,
-  ) {}
+  ) {
+    this.client.connect();
+  }
 
   async sumPoints(): Promise<PointsDto[]> {
     const query: any[] = await this.prisma
@@ -18,7 +40,8 @@ export class UsersService {
     from "Task" t
              join "_TaskToUser" tu on t.id = tu."A"
              join "User" u on tu."B" = u.id
-    group by u.id;`;
+    group by u.id
+    order by points;`;
 
     return query.map((p) => {
       return {
@@ -51,6 +74,42 @@ export class UsersService {
         0,
       ),
     };
+  }
+
+  private async sendTaskCompletedMessage(message: TaskCompletedMessage) {
+    this.client.emit('award.daily', message);
+    this.client.emit('award.flawless', message);
+    this.client.emit('award.weekend', message);
+    this.client.emit('award.total_tasks', message);
+  }
+
+  private async sendPointsMessage(message: PointsMessage) {
+    this.client.emit('award.total_points', message);
+  }
+
+  private async sendTopMessage(message: TopMessage) {
+    this.client.emit('award.top', message);
+  }
+
+  private async sendEverything(params: { userId: string, valid: boolean }) {
+    const { userId, valid } = params;
+
+    this.sendTaskCompletedMessage({ userId, valid, timestamp: new Date() });
+
+    const points = await this.points({ userId });
+
+    this.sendPointsMessage({
+      userId,
+      points: points.points,
+    });
+
+    const top = await this.sumPoints();
+    const rank = top.indexOf(top.filter(dto => dto.id == userId).at(0));
+
+    this.sendTopMessage({
+      userId,
+      rank,
+    });
   }
 
   async tryCompleteTask(params: {
@@ -103,6 +162,13 @@ export class UsersService {
       },
     });
 
+    await this.sendTaskCompletedMessage({
+      userId,
+      valid: true,
+      timestamp: new Date(),
+    });
+
+
     return {
       decompile_id: taskId,
       answer,
@@ -142,6 +208,19 @@ export class UsersService {
         },
       });
     }
+
+    await this.sendTaskCompletedMessage({
+      userId,
+      valid: true,
+      timestamp: new Date(),
+    });
+
+    const points = await this.points({ userId });
+
+    await this.sendPointsMessage({
+      userId,
+      points: points.points,
+    });
 
     return this.prisma.user.update({
       where: {
